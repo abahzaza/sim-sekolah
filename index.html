@@ -1,0 +1,3098 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi & Manajemen Sekolah (SIMS)</title>
+    <!-- Font Plus Jakarta Sans & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel Import/Export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: #1e293b;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .sidebar {
+            width: 270px;
+            background-color: var(--sidebar-bg);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            border-right: 1px solid #1e293b;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .sidebar-logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #fff;
+            padding: 2px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 20px 14px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-hover);
+            color: #f8fafc;
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .submenu-container {
+            display: none;
+            padding-left: 14px;
+            margin-bottom: 6px;
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+            margin-left: 24px;
+        }
+
+        .submenu-container .nav-item {
+            font-size: 0.825rem;
+            padding: 9px 12px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #f1f5f9;
+        }
+
+        .top-navbar {
+            height: 70px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            z-index: 10;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #ffffff;
+            padding: 6px 14px 6px 6px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, #818cf8 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 32px;
+            overflow-y: auto;
+        }
+
+        .section-page {
+            display: none;
+            animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .section-page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .grid-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-size: 0.825rem;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            padding: 10px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.2s ease;
+            background-color: #f8fafc;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .input-icon-wrapper {
+            position: relative;
+        }
+
+        .input-icon-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            transition: color 0.2s;
+        }
+
+        .input-icon-wrapper .form-control {
+            padding-left: 42px;
+        }
+
+        .input-icon-wrapper .form-control:focus + i {
+            color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%); 
+            color: #fff; 
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+        }
+        .btn-primary:hover { 
+            opacity: 0.95; 
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(79, 70, 229, 0.35);
+        }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-secondary { background: #64748b; color: #fff; }
+        .btn-warning { background: var(--warning); color: #fff; }
+        .btn-sm { padding: 6px 12px; font-size: 0.775rem; border-radius: 8px; }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 520px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .badge-success { background: #d1fae5; color: #047857; }
+        .badge-warning { background: #fef3c7; color: #b45309; }
+        .badge-danger { background: #fee2e2; color: #b91c1c; }
+        .badge-info { background: #e0f2fe; color: #0369a1; }
+
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        #loginOverlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: modalScale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .login-brand-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        @media print {
+            .sidebar, .top-navbar, .btn, form, .input-icon-wrapper { display: none !important; }
+            body, .main-content, .content-body { overflow: visible !important; height: auto !important; background: #fff !important; }
+            .card { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            .table-container { max-height: none !important; overflow: visible !important; border: none !important; }
+            th, td { border: 1px solid #000 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <div class="login-brand-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h2 style="margin-bottom: 6px; font-weight: 800; font-size: 1.6rem; color: var(--text-main);">Selamat Datang</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 28px;">Masuk untuk mengakses Sistem Informasi Management Sekolah</p>
+            <form id="loginForm">
+                <div class="form-group" style="margin-bottom: 18px;">
+                    <label>Username</label>
+                    <div class="input-icon-wrapper">
+                        <input type="text" id="loginUsername" class="form-control" placeholder="Masukkan username" required value="admin">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 28px;">
+                    <label>Password</label>
+                    <div class="input-icon-wrapper">
+                        <input type="password" id="loginPassword" class="form-control" placeholder="Masukkan password" required value="admin123">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 0.95rem;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Masuk Aplikasi
+                </button>
+            </form>
+            <div style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">
+                ©copyright rz4
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img id="sidebarLogo" class="sidebar-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='%234f46e5'><path d='M12 2L1 21h22L12 2zm0 3.5L18.5 19H5.5L12 5.5z'/></svg>" alt="Logo">
+            <div>
+                <h4 id="sidebarSchoolName" style="font-size: 0.95rem; font-weight: 700; color: #fff;">SIM Sekolah</h4>
+                <p id="sidebarNPSN" style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;">NPSN: -</p>
+            </div>
+        </div>
+        <div class="sidebar-menu">
+            <div class="nav-item active" data-menu="dashboard" onclick="navigateTo('dashboard')">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard
+            </div>
+            <div class="nav-item" data-menu="profile" onclick="navigateTo('profile')">
+                <i class="fa-solid fa-school"></i> Profil Sekolah
+            </div>
+            <div class="nav-item" data-menu="users" onclick="navigateTo('users')">
+                <i class="fa-solid fa-users-gear"></i> Manajemen User
+            </div>
+            <div class="nav-item" data-menu="hak-akses" onclick="navigateTo('hak-akses')">
+                <i class="fa-solid fa-user-shield"></i> Pengaturan Hak Akses
+            </div>
+            <div class="nav-item" data-menu="guru" onclick="navigateTo('guru')">
+                <i class="fa-solid fa-chalkboard-user"></i> Data Guru
+            </div>
+            <div class="nav-item" data-menu="siswa" onclick="navigateTo('siswa')">
+                <i class="fa-solid fa-user-graduate"></i> Data Siswa
+            </div>
+            <div class="nav-item" data-menu="rombel" onclick="navigateTo('rombel')">
+                <i class="fa-solid fa-layer-group"></i> Rombongan Belajar
+            </div>
+
+            <!-- MENU SARPRAS WITH SUBMENU -->
+            <div class="nav-item sarpras-parent-menu" onclick="toggleSubmenu('sarprasSubmenu')">
+                <i class="fa-solid fa-boxes-stacked"></i> Sarpras
+                <i class="fa-solid fa-chevron-down" style="margin-left: auto; font-size: 0.75rem;"></i>
+            </div>
+            <div id="sarprasSubmenu" class="submenu-container">
+                <div class="nav-item" data-menu="sarpras-tanah" onclick="navigateTo('sarpras-tanah')">
+                    <i class="fa-solid fa-map-location-dot"></i> Tanah
+                </div>
+                <div class="nav-item" data-menu="sarpras-bangunan" onclick="navigateTo('sarpras-bangunan')">
+                    <i class="fa-solid fa-building"></i> Bangunan
+                </div>
+                <div class="nav-item" data-menu="sarpras-ruang" onclick="navigateTo('sarpras-ruang')">
+                    <i class="fa-solid fa-door-open"></i> Ruang
+                </div>
+                <div class="nav-item" data-menu="sarpras-peralatan" onclick="navigateTo('sarpras-peralatan')">
+                    <i class="fa-solid fa-toolbox"></i> Peralatan
+                </div>
+                <div class="nav-item" data-menu="sarpras-buku" onclick="navigateTo('sarpras-buku')">
+                    <i class="fa-solid fa-book"></i> Buku
+                </div>
+            </div>
+
+            <!-- MENU PEMINJAMAN WITH SUBMENU -->
+            <div class="nav-item peminjaman-parent-menu" onclick="toggleSubmenu('peminjamanSubmenu')">
+                <i class="fa-solid fa-hand-holding-hand"></i> Peminjaman
+                <i class="fa-solid fa-chevron-down" style="margin-left: auto; font-size: 0.75rem;"></i>
+            </div>
+            <div id="peminjamanSubmenu" class="submenu-container">
+                <div class="nav-item" data-menu="peminjaman-buku" onclick="navigateTo('peminjaman-buku')">
+                    <i class="fa-solid fa-book-reader"></i> Peminjaman Buku
+                </div>
+                <div class="nav-item" data-menu="peminjaman-peralatan" onclick="navigateTo('peminjaman-peralatan')">
+                    <i class="fa-solid fa-screwdriver-wrench"></i> Peminjaman Peralatan
+                </div>
+            </div>
+
+            <div class="nav-item" data-menu="presensi" onclick="navigateTo('presensi')">
+                <i class="fa-solid fa-clipboard-user"></i> Presensi
+            </div>
+
+            <!-- MENU LAPORAN WITH SUBMENU -->
+            <div class="nav-item laporan-parent-menu" onclick="toggleSubmenu('laporanSubmenu')">
+                <i class="fa-solid fa-file-lines"></i> Menu Laporan
+                <i class="fa-solid fa-chevron-down" style="margin-left: auto; font-size: 0.75rem;"></i>
+            </div>
+            <div id="laporanSubmenu" class="submenu-container">
+                <div class="nav-item" data-menu="laporan-guru" onclick="navigateTo('laporan-guru')">
+                    <i class="fa-solid fa-id-card"></i> Laporan Guru & Karyawan
+                </div>
+                <div class="nav-item" data-menu="laporan-siswa" onclick="navigateTo('laporan-siswa')">
+                    <i class="fa-solid fa-user-graduate"></i> Laporan Data Siswa
+                </div>
+                <div class="nav-item" data-menu="laporan-presensi-siswa" onclick="navigateTo('laporan-presensi-siswa')">
+                    <i class="fa-solid fa-calendar-check"></i> Kehadiran Siswa
+                </div>
+                <div class="nav-item" data-menu="laporan-presensi-guru" onclick="navigateTo('laporan-presensi-guru')">
+                    <i class="fa-solid fa-calendar-user"></i> Kehadiran Guru/Karyawan
+                </div>
+                <div class="nav-item" data-menu="laporan-buku" onclick="navigateTo('laporan-buku')">
+                    <i class="fa-solid fa-book"></i> Data Buku
+                </div>
+                <div class="nav-item" data-menu="laporan-peralatan" onclick="navigateTo('laporan-peralatan')">
+                    <i class="fa-solid fa-wrench"></i> Data Peralatan
+                </div>
+                <div class="nav-item" data-menu="laporan-pinjam-buku" onclick="navigateTo('laporan-pinjam-buku')">
+                    <i class="fa-solid fa-book-bookmark"></i> Peminjam Buku
+                </div>
+                <div class="nav-item" data-menu="laporan-pinjam-alat" onclick="navigateTo('laporan-pinjam-alat')">
+                    <i class="fa-solid fa-toolbox"></i> Peminjam Alat
+                </div>
+            </div>
+
+            <!-- BACKUP & RESTORE MENU -->
+            <div class="nav-item" data-menu="backup-restore" onclick="navigateTo('backup-restore')">
+                <i class="fa-solid fa-database"></i> Backup & Restore
+            </div>
+        </div>
+
+        <div style="padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+            <button class="btn btn-danger" style="width: 100%; justify-content: center;" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i> Keluar
+            </button>
+            <div style="text-align: center; margin-top: 14px; font-size: 0.75rem; color: #94a3b8; font-weight: 500;">
+                ©copyright rz4
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <div class="main-content">
+        <div class="top-navbar">
+            <h3 id="topSchoolTitle" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main);">Sistem Informasi Management Sekolah</h3>
+            <div class="user-profile">
+                <div class="avatar" id="userAvatar">A</div>
+                <div>
+                    <div id="userName" style="font-size: 0.875rem; font-weight: 700;">Admin</div>
+                    <div id="userRole" style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600;">ADMINISTRATOR</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-body">
+            <!-- PAGE: DASHBOARD -->
+            <div id="page-dashboard" class="section-page active">
+                <div class="card" style="display: flex; gap: 24px; align-items: center; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
+                    <img id="dashLogo" src="" alt="Logo" style="width: 90px; height: 90px; object-fit: cover; border-radius: 16px; box-shadow: var(--shadow-md); display: none;">
+                    <div>
+                        <h2 id="dashNamaSekolah" style="font-size: 1.5rem; font-weight: 800;">Nama Sekolah</h2>
+                        <p id="dashNPSN" style="color: var(--primary); font-weight: 600; font-size: 0.9rem;">NPSN: -</p>
+                        <p id="dashAlamat" style="color: var(--text-muted); font-size: 0.875rem; margin-top: 4px;">Alamat: -</p>
+                        <p id="dashKepala" style="color: var(--text-muted); font-size: 0.875rem;">Kepala Sekolah: -</p>
+                    </div>
+                </div>
+
+                <div class="grid-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #eef2ff; color: var(--primary);"><i class="fa-solid fa-chalkboard-user"></i></div>
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Total Guru</div>
+                            <div id="statGuru" style="font-size: 1.6rem; font-weight: 800;">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #ecfdf5; color: var(--success);"><i class="fa-solid fa-user-graduate"></i></div>
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Total Siswa</div>
+                            <div id="statSiswa" style="font-size: 1.6rem; font-weight: 800;">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fffbeb; color: var(--warning);"><i class="fa-solid fa-layer-group"></i></div>
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Rombel</div>
+                            <div id="statRombel" style="font-size: 1.6rem; font-weight: 800;">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fef2f2; color: var(--danger);"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <div>
+                            <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Total Item Sarpras</div>
+                            <div id="statSarpras" style="font-size: 1.6rem; font-weight: 800;">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 1.1rem; font-weight: 700;">Ringkasan Presensi Hari Ini</h3>
+                    <div style="display: flex; gap: 24px; margin-top: 16px;">
+                        <div>Hadir: <strong id="dashHadir" style="color: var(--success); font-size: 1.1rem;">0</strong></div>
+                        <div>Izin: <strong id="dashIzin" style="color: var(--warning); font-size: 1.1rem;">0</strong></div>
+                        <div>Sakit: <strong id="dashSakit" style="color: var(--primary); font-size: 1.1rem;">0</strong></div>
+                        <div>Alpa: <strong id="dashAlpa" style="color: var(--danger); font-size: 1.1rem;">0</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: PROFIL SEKOLAH -->
+            <div id="page-profile" class="section-page">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; font-weight: 700;">Pengaturan Profil Sekolah</h3>
+                    <form id="formSekolah" class="form-grid">
+                        <div class="form-group">
+                            <label>Nama Sekolah</label>
+                            <input type="text" id="secNama" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>NPSN</label>
+                            <input type="text" id="secNpsn" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kepala Sekolah</label>
+                            <input type="text" id="secKepala" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Alamat Sekolah</label>
+                            <input type="text" id="secAlamat" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Nomor Telepon</label>
+                            <input type="text" id="secTelepon" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Email Sekolah</label>
+                            <input type="email" id="secEmail" class="form-control">
+                        </div>
+                        <div style="grid-column: 1 / -1; margin-top: 8px;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Profil</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Logo Sekolah</h3>
+                    <div style="display: flex; align-items: center; gap: 24px; margin-top: 16px;">
+                        <img id="logoPreviewCurrent" src="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px; border: 1px solid var(--border-color); display:none;">
+                        <div>
+                            <input type="file" id="logoFileInput" accept="image/*" class="form-control" style="margin-bottom: 12px;">
+                            <button class="btn btn-secondary btn-sm" onclick="saveLogoManual()"><i class="fa-solid fa-upload"></i> Unggah Logo</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: USER MANAGEMENT -->
+            <div id="page-users" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Tambah User Baru</h3>
+                    <form id="formUser" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Nama Pengguna</label>
+                            <input type="text" id="usrNama" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" id="usrUsername" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="usrPassword" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select id="usrRole" class="form-control">
+                                <option value="operator">Operator</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Tambah User</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Pengguna Sistem</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama</th>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="userTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: PENGATURAN HAK AKSES -->
+            <div id="page-hak-akses" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div>
+                            <h3 style="font-weight: 700;">Pengaturan Hak Akses Pengguna</h3>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Atur modul dan sub-menu yang diizinkan untuk setiap akun pengguna.</p>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pengguna</th>
+                                    <th>Role</th>
+                                    <th style="text-align: center;">Dashboard</th>
+                                    <th style="text-align: center;">Profil</th>
+                                    <th style="text-align: center;">User Mgt</th>
+                                    <th style="text-align: center;">Hak Akses</th>
+                                    <th style="text-align: center;">Guru</th>
+                                    <th style="text-align: center;">Siswa</th>
+                                    <th style="text-align: center;">Rombel</th>
+                                    <th style="text-align: center;">Tanah</th>
+                                    <th style="text-align: center;">Bangunan</th>
+                                    <th style="text-align: center;">Ruang</th>
+                                    <th style="text-align: center;">Peralatan</th>
+                                    <th style="text-align: center;">Buku</th>
+                                    <th style="text-align: center;">Pinjam Buku</th>
+                                    <th style="text-align: center;">Pinjam Alat</th>
+                                    <th style="text-align: center;">Presensi</th>
+                                    <th style="text-align: center;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hakAksesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: DATA GURU -->
+            <div id="page-guru" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-weight: 700;">Form Input Data Guru & Karyawan (46 Atribut Complete)</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm" onclick="downloadGuruTemplate()"><i class="fa-solid fa-file-excel"></i> Template</button>
+                            <button class="btn btn-success btn-sm" onclick="exportGuruToExcel()"><i class="fa-solid fa-file-export"></i> Ekspor Excel</button>
+                            <label class="btn btn-primary btn-sm" style="margin: 0;">
+                                <i class="fa-solid fa-file-import"></i> Impor Excel
+                                <input type="file" id="excelGuruInput" accept=".xlsx, .xls" style="display: none;">
+                            </label>
+                        </div>
+                    </div>
+                    <form id="formGuru">
+                        <div class="form-grid" id="guruFormFieldsContainer"></div>
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Guru</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Data Guru & Karyawan</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr id="guruTableHeaderRow">
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guruTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: DATA SISWA -->
+            <div id="page-siswa" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="font-weight: 700;">Form Input Data Siswa (49 Atribut Complete)</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm" onclick="downloadSiswaTemplate()"><i class="fa-solid fa-file-excel"></i> Template</button>
+                            <button class="btn btn-success btn-sm" onclick="exportSiswaToExcel()"><i class="fa-solid fa-file-export"></i> Ekspor Excel</button>
+                            <label class="btn btn-primary btn-sm" style="margin: 0;">
+                                <i class="fa-solid fa-file-import"></i> Impor Excel
+                                <input type="file" id="excelSiswaInput" accept=".xlsx, .xls" style="display: none;">
+                            </label>
+                        </div>
+                    </div>
+                    <form id="formSiswa">
+                        <div class="form-grid" id="siswaFormFieldsContainer"></div>
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Siswa</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Data Peserta Didik</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr id="siswaTableHeaderRow">
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="siswaTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: ROMBEL -->
+            <div id="page-rombel" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Tambah Rombongan Belajar</h3>
+                    <form id="formRombel" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Nama Rombel / Kelas</label>
+                            <input type="text" id="rombelNama" class="form-control" required placeholder="Contoh: VII-A">
+                        </div>
+                        <div class="form-group">
+                            <label>Tingkat</label>
+                            <input type="number" id="rombelTingkat" class="form-control" required placeholder="7, 8, atau 9">
+                        </div>
+                        <div class="form-group">
+                            <label>Wali Kelas</label>
+                            <input type="text" id="rombelWali" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Tahun Ajaran</label>
+                            <input type="text" id="rombelThnAjaran" class="form-control" value="2025/2026">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Simpan Rombel</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Rombongan Belajar</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama Rombel</th>
+                                    <th>Tingkat</th>
+                                    <th>Wali Kelas</th>
+                                    <th>Tahun Ajaran</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rombelTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: SARPRAS - TANAH -->
+            <div id="page-sarpras-tanah" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Input Data Sarpras: Tanah</h3>
+                    <form id="formSarprasTanah" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Nama / Lokasi Tanah</label>
+                            <input type="text" id="tanahNama" class="form-control" required placeholder="Lahan Utama/Lapangan">
+                        </div>
+                        <div class="form-group">
+                            <label>Kode Tanah</label>
+                            <input type="text" id="tanahKode" class="form-control" required placeholder="TNH-001">
+                        </div>
+                        <div class="form-group">
+                            <label>Luas Tanah (m²)</label>
+                            <input type="number" id="tanahLuas" class="form-control" required placeholder="1500">
+                        </div>
+                        <div class="form-group">
+                            <label>Status Kepemilikan</label>
+                            <select id="tanahStatus" class="form-control">
+                                <option value="Sertifikat (Milik Sendiri)">Sertifikat (Milik Sendiri)</option>
+                                <option value="Sewa">Sewa</option>
+                                <option value="Pinjam Pakai">Pinjam Pakai</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nomor Sertifikat</label>
+                            <input type="text" id="tanahSertifikat" class="form-control" placeholder="12.01.02.04.1.0001">
+                        </div>
+                        <div class="form-group">
+                            <label>Alamat</label>
+                            <input type="text" id="tanahAlamat" class="form-control">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Tanah</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Data Tanah</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Nama / Lokasi</th>
+                                    <th>Luas (m²)</th>
+                                    <th>Status Kepemilikan</th>
+                                    <th>No Sertifikat</th>
+                                    <th>Alamat</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tanahTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: SARPRAS - BANGUNAN -->
+            <div id="page-sarpras-bangunan" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Input Data Sarpras: Bangunan</h3>
+                    <form id="formSarprasBangunan" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Kode Bangunan</label>
+                            <input type="text" id="bangunanKode" class="form-control" required placeholder="BGN-01">
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Bangunan</label>
+                            <input type="text" id="bangunanNama" class="form-control" required placeholder="Gedung Utama / Gedung B">
+                        </div>
+                        <div class="form-group">
+                            <label>Luas Bangunan (m²)</label>
+                            <input type="number" id="bangunanLuas" class="form-control" required placeholder="500">
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Lantai</label>
+                            <input type="number" id="bangunanLantai" class="form-control" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Tahun Dibangun</label>
+                            <input type="number" id="bangunanTahun" class="form-control" placeholder="2015">
+                        </div>
+                        <div class="form-group">
+                            <label>Kondisi</label>
+                            <select id="bangunanKondisi" class="form-control">
+                                <option value="Baik">Baik</option>
+                                <option value="Rusak Ringan">Rusak Ringan</option>
+                                <option value="Rusak Berat">Rusak Berat</option>
+                            </select>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Bangunan</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Data Bangunan</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Nama Bangunan</th>
+                                    <th>Luas (m²)</th>
+                                    <th>Lantai</th>
+                                    <th>Thn Bangun</th>
+                                    <th>Kondisi</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bangunanTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: SARPRAS - RUANG -->
+            <div id="page-sarpras-ruang" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Input Data Sarpras: Ruang</h3>
+                    <form id="formSarprasRuang" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Kode Ruang</label>
+                            <input type="text" id="ruangKode" class="form-control" required placeholder="R-101">
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Ruang</label>
+                            <input type="text" id="ruangNama" class="form-control" required placeholder="Ruang Kelas 7A / Lab Komputer">
+                        </div>
+                        <div class="form-group">
+                            <label>Jenis Ruang</label>
+                            <select id="ruangJenis" class="form-control">
+                                <option value="Ruang Teori/Kelas">Ruang Teori/Kelas</option>
+                                <option value="Laboratorium">Laboratorium</option>
+                                <option value="Perpustakaan">Perpustakaan</option>
+                                <option value="Ruang Guru/Kepsek">Ruang Guru/Kepsek</option>
+                                <option value="Ruang Ibadah">Ruang Ibadah</option>
+                                <option value="Toilet/Sanitasi">Toilet/Sanitasi</option>
+                                <option value="Gudang">Gudang</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ukuran (PxL m)</label>
+                            <input type="text" id="ruangUkuran" class="form-control" placeholder="8 x 9 m">
+                        </div>
+                        <div class="form-group">
+                            <label>Kapasitas (Orang)</label>
+                            <input type="number" id="ruangKapasitas" class="form-control" placeholder="32">
+                        </div>
+                        <div class="form-group">
+                            <label>Kondisi</label>
+                            <select id="ruangKondisi" class="form-control">
+                                <option value="Baik">Baik</option>
+                                <option value="Rusak Ringan">Rusak Ringan</option>
+                                <option value="Rusak Berat">Rusak Berat</option>
+                            </select>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Ruang</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Data Ruangan</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Nama Ruang</th>
+                                    <th>Jenis Ruang</th>
+                                    <th>Ukuran</th>
+                                    <th>Kapasitas</th>
+                                    <th>Kondisi</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ruangTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: SARPRAS - PERALATAN -->
+            <div id="page-sarpras-peralatan" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Input Data Sarpras: Peralatan & Mebeulair</h3>
+                    <form id="formSarprasPeralatan" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Kode Barang</label>
+                            <input type="text" id="alatKode" class="form-control" required placeholder="ALT-001">
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Peralatan / Barang</label>
+                            <input type="text" id="alatNama" class="form-control" required placeholder="Meja Siswa / Proyektor">
+                        </div>
+                        <div class="form-group">
+                            <label>Merk / Spesifikasi</label>
+                            <input type="text" id="alatMerk" class="form-control" placeholder="Epson EB-X400 / Kayu Jati">
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Unit</label>
+                            <input type="number" id="alatJumlah" class="form-control" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Kondisi</label>
+                            <select id="alatKondisi" class="form-control">
+                                <option value="Baik">Baik</option>
+                                <option value="Rusak Ringan">Rusak Ringan</option>
+                                <option value="Rusak Berat">Rusak Berat</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Lokasi Penempatan</label>
+                            <input type="text" id="alatLokasi" class="form-control" placeholder="Lab Komputer / Ruang 7A">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Peralatan</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Data Peralatan</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Nama Barang</th>
+                                    <th>Merk/Spesifikasi</th>
+                                    <th>Jumlah</th>
+                                    <th>Kondisi</th>
+                                    <th>Lokasi</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="peralatanTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: SARPRAS - BUKU -->
+            <div id="page-sarpras-buku" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Input Data Sarpras: Buku & Koleksi Perpustakaan</h3>
+                    <form id="formSarprasBuku" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Kode Buku / ISBN</label>
+                            <input type="text" id="bukuKode" class="form-control" required placeholder="978-602-xxx-x">
+                        </div>
+                        <div class="form-group">
+                            <label>Judul Buku</label>
+                            <input type="text" id="bukuJudul" class="form-control" required placeholder="Matematika Kelas VII">
+                        </div>
+                        <div class="form-group">
+                            <label>Kategori / Mata Pelajaran</label>
+                            <input type="text" id="bukuKategori" class="form-control" placeholder="Buku Paket / Fiksi">
+                        </div>
+                        <div class="form-group">
+                            <label>Pengarang</label>
+                            <input type="text" id="bukuPengarang" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Penerbit / Lokasi</label>
+                            <input type="text" id="bukuPenerbit" class="form-control" placeholder="Erlangga / Rak A2">
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Eksemplar</label>
+                            <input type="number" id="bukuJumlah" class="form-control" value="1">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Buku</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Katalog Data Buku</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Kode/ISBN</th>
+                                    <th>Judul Buku</th>
+                                    <th>Kategori</th>
+                                    <th>Pengarang</th>
+                                    <th>Penerbit/Lokasi</th>
+                                    <th>Jumlah</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bukuTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: PEMINJAMAN BUKU -->
+            <div id="page-peminjaman-buku" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Form Input Peminjaman Buku</h3>
+                    <form id="formPeminjamanBuku" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Tanggal Peminjaman</label>
+                            <input type="date" id="pinjamBukuTanggalPinjam" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Peminjam</label>
+                            <div class="input-icon-wrapper">
+                                <input type="text" class="form-control" placeholder="🔍 Cari nama peminjam..." onkeyup="filterOptions(this, 'pinjamBukuNama')">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
+                            <select id="pinjamBukuNama" class="form-control" required style="margin-top: 6px;">
+                                <option value="">-- Pilih Peminjam (Guru/Siswa) --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Judul Buku yang Dipinjam</label>
+                            <div class="input-icon-wrapper">
+                                <input type="text" class="form-control" placeholder="🔍 Cari judul buku..." onkeyup="filterOptions(this, 'pinjamBukuJudul')">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
+                            <select id="pinjamBukuJudul" class="form-control" required style="margin-top: 6px;">
+                                <option value="">-- Pilih Buku --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Buku yang Dipinjam</label>
+                            <input type="number" id="pinjamBukuJumlah" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kondisi Buku Saat Dipinjam</label>
+                            <select id="pinjamBukuKondisiPinjam" class="form-control">
+                                <option value="Baik">Baik</option>
+                                <option value="Rusak">Rusak</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Lama Peminjaman</label>
+                            <input type="text" id="pinjamBukuLama" class="form-control" required placeholder="Contoh: 3 Hari / 1 Minggu / 1 Bulan">
+                        </div>
+                        <div class="form-group">
+                            <label>Tanggal Pengembalian Buku</label>
+                            <input type="date" id="pinjamBukuTanggalKembali" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Kondisi Buku Saat Dikembalikan</label>
+                            <select id="pinjamBukuKondisiKembali" class="form-control">
+                                <option value="Belum Dikembalikan">Belum Dikembalikan</option>
+                                <option value="Baik">Baik</option>
+                                <option value="Rusak">Rusak</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Catatan</label>
+                            <input type="text" id="pinjamBukuCatatan" class="form-control" placeholder="Catatan tambahan (opsional)">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Peminjaman Buku</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Peminjaman Buku</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tgl Pinjam</th>
+                                    <th>Nama Peminjam</th>
+                                    <th>Judul Buku</th>
+                                    <th>Jumlah</th>
+                                    <th>Kondisi Pinjam</th>
+                                    <th>Lama Pinjam</th>
+                                    <th>Tgl Kembali</th>
+                                    <th>Kondisi Kembali</th>
+                                    <th>Catatan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="peminjamanBukuTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: PEMINJAMAN PERALATAN SEKOLAH -->
+            <div id="page-peminjaman-peralatan" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Form Input Peminjaman Peralatan Sekolah</h3>
+                    <form id="formPeminjamanPeralatan" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Tanggal Peminjaman</label>
+                            <input type="date" id="pinjamAlatTanggalPinjam" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Peminjam</label>
+                            <div class="input-icon-wrapper">
+                                <input type="text" class="form-control" placeholder="🔍 Cari nama peminjam..." onkeyup="filterOptions(this, 'pinjamAlatNama')">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
+                            <select id="pinjamAlatNama" class="form-control" required style="margin-top: 6px;">
+                                <option value="">-- Pilih Peminjam (Guru/Siswa) --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Alat yang Dipinjam</label>
+                            <div class="input-icon-wrapper">
+                                <input type="text" class="form-control" placeholder="🔍 Cari peralatan..." onkeyup="filterOptions(this, 'pinjamAlatNamaAlat')">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
+                            <select id="pinjamAlatNamaAlat" class="form-control" required style="margin-top: 6px;">
+                                <option value="">-- Pilih Peralatan --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Alat yang Dipinjam</label>
+                            <input type="number" id="pinjamAlatJumlah" class="form-control" value="1" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Kondisi Alat Saat Dipinjam</label>
+                            <select id="pinjamAlatKondisiPinjam" class="form-control">
+                                <option value="Baik">Baik</option>
+                                <option value="Rusak">Rusak</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Lama Peminjaman</label>
+                            <input type="text" id="pinjamAlatLama" class="form-control" required placeholder="Contoh: 2 Hari / 1 Minggu / 1 Bulan">
+                        </div>
+                        <div class="form-group">
+                            <label>Tanggal Pengembalian Alat</label>
+                            <input type="date" id="pinjamAlatTanggalKembali" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Kondisi Alat Saat Dikembalikan</label>
+                            <select id="pinjamAlatKondisiKembali" class="form-control">
+                                <option value="Belum Dikembalikan">Belum Dikembalikan</option>
+                                <option value="Baik">Baik</option>
+                                <option value="Rusak">Rusak</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Catatan</label>
+                            <input type="text" id="pinjamAlatCatatan" class="form-control" placeholder="Catatan tambahan (opsional)">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Peminjaman Peralatan</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Daftar Peminjaman Peralatan Sekolah</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tgl Pinjam</th>
+                                    <th>Nama Peminjam</th>
+                                    <th>Nama Alat</th>
+                                    <th>Jumlah</th>
+                                    <th>Kondisi Pinjam</th>
+                                    <th>Lama Pinjam</th>
+                                    <th>Tgl Kembali</th>
+                                    <th>Kondisi Kembali</th>
+                                    <th>Catatan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="peminjamanPeralatanTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: PRESENSI -->
+            <div id="page-presensi" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700;">Catat Presensi Harian</h3>
+                    <form id="formPresensi" class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label>Tanggal</label>
+                            <input type="date" id="presensiTanggal" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipe</label>
+                            <select id="presensiTipe" class="form-control">
+                                <option value="Siswa">Siswa</option>
+                                <option value="Guru">Guru</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Personel</label>
+                            <input type="text" id="presensiNama" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Status Kehadiran</label>
+                            <select id="presensiStatus" class="form-control">
+                                <option value="Hadir">Hadir</option>
+                                <option value="Izin">Izin</option>
+                                <option value="Sakit">Sakit</option>
+                                <option value="Alpa">Alpa</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Keterangan</label>
+                            <input type="text" id="presensiKet" class="form-control">
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check-double"></i> Simpan Presensi</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 style="font-weight: 700;">Riwayat Presensi</h3>
+                    <div class="table-container" style="margin-top: 16px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Tipe</th>
+                                    <th>Nama</th>
+                                    <th>Status</th>
+                                    <th>Keterangan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="presensiTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: BACKUP & RESTORE DATA -->
+            <div id="page-backup-restore" class="section-page">
+                <div class="card">
+                    <h3 style="font-weight: 700; margin-bottom: 8px;"><i class="fa-solid fa-database"></i> Backup & Restore Data Database</h3>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 24px;">
+                        Cadangkan seluruh data sistem (Profil Sekolah, Guru, Siswa, Sarpras, Peminjaman, Presensi) dalam berkas JSON atau pulihkan data dari berkas cadangan sebelumnya.
+                    </p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                        <div style="border: 1px dashed var(--primary); padding: 24px; border-radius: 12px; background: #fafafa; text-align: center;">
+                            <i class="fa-solid fa-download" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 12px;"></i>
+                            <h4 style="font-weight: 700; margin-bottom: 6px;">Backup Data</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">Unduh seluruh data database SIMS dalam satu berkas format JSON.</p>
+                            <button class="btn btn-primary" onclick="backupDatabase()"><i class="fa-solid fa-file-export"></i> Unduh Cadangan JSON</button>
+                        </div>
+                        <div style="border: 1px dashed var(--warning); padding: 24px; border-radius: 12px; background: #fafafa; text-align: center;">
+                            <i class="fa-solid fa-upload" style="font-size: 2.5rem; color: var(--warning); margin-bottom: 12px;"></i>
+                            <h4 style="font-weight: 700; margin-bottom: 6px;">Restore Data</h4>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px;">Pilih berkas JSON cadangan untuk memulihkan seluruh data aplikasi.</p>
+                            <label class="btn btn-warning" style="margin: 0; display: inline-flex;">
+                                <i class="fa-solid fa-file-import"></i> Pulihkan Dari JSON
+                                <input type="file" id="restoreFileInput" accept=".json" style="display: none;" onchange="restoreDatabase(event)">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGES LAPORAN -->
+            <!-- 1. LAPORAN GURU -->
+            <div id="page-laporan-guru" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700;"><i class="fa-solid fa-file-invoice"></i> Laporan Data Guru dan Karyawan</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-success btn-sm" onclick="exportReportToExcel('laporanGuruTable', 'Laporan_Data_Guru')"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="laporanGuruTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>NIP / NUPTK</th>
+                                    <th>Nama Guru / Karyawan</th>
+                                    <th>JK</th>
+                                    <th>Status Kepegawaian</th>
+                                    <th>Pangkat / Gol</th>
+                                    <th>Telepon / HP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lapGuruBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. LAPORAN SISWA -->
+            <div id="page-laporan-siswa" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700;"><i class="fa-solid fa-file-invoice"></i> Laporan Data Siswa</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-success btn-sm" onclick="exportReportToExcel('laporanSiswaTable', 'Laporan_Data_Siswa')"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="laporanSiswaTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>NISN / NIPD</th>
+                                    <th>Nama Siswa</th>
+                                    <th>JK</th>
+                                    <th>Rombel</th>
+                                    <th>Agama</th>
+                                    <th>Nama Orang Tua / Wali</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lapSiswaBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. LAPORAN KEHADIRAN SISWA -->
+            <div id="page-laporan-presensi-siswa" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700;"><i class="fa-solid fa-file-invoice"></i> Laporan Data Kehadiran Siswa</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-success btn-sm" onclick="exportReportToExcel('laporanPresensiSiswaTable', 'Laporan_Kehadiran_Siswa')"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="laporanPresensiSiswaTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tanggal</th>
+                                    <th>Nama Siswa</th>
+                                    <th>Status Kehadiran</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lapPresensiSiswaBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. LAPORAN KEHADIRAN GURU -->
+            <div id="page-laporan-presensi-guru" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700;"><i class="fa-solid fa-file-invoice"></i> Laporan Data Kehadiran Guru & Karyawan</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-success btn-sm" onclick="exportReportToExcel('laporanPresensiGuruTable', 'Laporan_Kehadiran_Guru')"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="laporanPresensiGuruTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tanggal</th>
+                                    <th>Nama Guru / Karyawan</th>
+                                    <th>Status Kehadiran</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lapPresensiGuruBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. LAPORAN BUKU -->
+            <div id="page-laporan-buku" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700;"><i class="fa-solid fa-file-invoice"></i> Laporan Data Buku</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-success btn-sm" onclick="exportReportToExcel('laporanBukuTable', 'Laporan_Data_Buku')"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="laporanBukuTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Kode / ISBN</th>
+                                    <th>Judul Buku</th>
+                                    <th>Jumlah (Eks)</th>
+                                    <th>Lokasi / Penerbit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lapBukuBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. LAPORAN PERALATAN -->
+            <div id="page-laporan-peralatan" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700;"><i class="fa-solid fa-file-invoice"></i> Laporan Data Peralatan</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-success btn-sm" onclick="exportReportToExcel('laporanPeralatanTable', 'Laporan_Data_Peralatan')"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="laporanPeralatanTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Kode Barang</th>
+                                    <th>Nama Alat</th>
+                                    <th>Jumlah</th>
+                                    <th>Kondisi</th>
+                                    <th>Lokasi Alat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lapPeralatanBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. LAPORAN PEMINJAM BUKU -->
+            <div id="page-laporan-pinjam-buku" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700;"><i class="fa-solid fa-file-invoice"></i> Laporan Data Peminjam Buku</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-success btn-sm" onclick="exportReportToExcel('laporanPinjamBukuTable', 'Laporan_Peminjam_Buku')"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="laporanPinjamBukuTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tanggal Peminjaman</th>
+                                    <th>Nama Peminjam</th>
+                                    <th>Nama Buku yang Dipinjam</th>
+                                    <th>Jumlah Dipinjam</th>
+                                    <th>Tanggal Pengembalian</th>
+                                    <th>Kondisi Pengembalian</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lapPinjamBukuBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. LAPORAN PEMINJAM ALAT -->
+            <div id="page-laporan-pinjam-alat" class="section-page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-weight: 700;"><i class="fa-solid fa-file-invoice"></i> Laporan Data Peminjam Alat</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-success btn-sm" onclick="exportReportToExcel('laporanPinjamAlatTable', 'Laporan_Peminjam_Alat')"><i class="fa-solid fa-file-excel"></i> Ekspor Excel</button>
+                            <button class="btn btn-secondary btn-sm" onclick="window.print()"><i class="fa-solid fa-print"></i> Cetak Laporan</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table id="laporanPinjamAlatTable">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tanggal Peminjaman</th>
+                                    <th>Nama Peminjam</th>
+                                    <th>Nama Alat yang Dipinjam</th>
+                                    <th>Jumlah Dipinjam</th>
+                                    <th>Tanggal Pengembalian</th>
+                                    <th>Kondisi Pengembalian</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lapPinjamAlatBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const ALL_STORES = [
+            'users', 'school', 'guru', 'siswa', 'rombel', 'presensi',
+            'sarpras_tanah', 'sarpras_bangunan', 'sarpras_ruang', 'sarpras_peralatan', 'sarpras_buku',
+            'peminjaman_buku', 'peminjaman_peralatan'
+        ];
+
+        const ALL_MENUS = [
+            'dashboard', 'profile', 'users', 'hak-akses', 'guru', 'siswa', 'rombel', 
+            'sarpras-tanah', 'sarpras-bangunan', 'sarpras-ruang', 'sarpras-peralatan', 'sarpras-buku', 
+            'peminjaman-buku', 'peminjaman-peralatan', 'presensi', 'backup-restore',
+            'laporan-guru', 'laporan-siswa', 'laporan-presensi-siswa', 'laporan-presensi-guru',
+            'laporan-buku', 'laporan-peralatan', 'laporan-pinjam-buku', 'laporan-pinjam-alat'
+        ];
+
+        const GURU_FIELDS = [
+            { key: 'nama', label: 'Nama' },
+            { key: 'jenis_kelamin', label: 'Jenis Kelamin' },
+            { key: 'tempat_lahir', label: 'Tempat Lahir' },
+            { key: 'tanggal_lahir', label: 'Tanggal Lahir' },
+            { key: 'agama', label: 'Agama' },
+            { key: 'alamat_jalan', label: 'Alamat Jalan' },
+            { key: 'rt_rw', label: 'RT/RW' },
+            { key: 'desa_kelurahan', label: 'Desa/Kelurahan' },
+            { key: 'kecamatan', label: 'Kecamatan' },
+            { key: 'kabupaten_kota', label: 'Kabupaten/Kota' },
+            { key: 'kode_pos', label: 'Kode Pos' },
+            { key: 'telepon', label: 'Telepon' },
+            { key: 'nomor_hp', label: 'Nomor HP' },
+            { key: 'email', label: 'Email' },
+            { key: 'status_kepegawaian', label: 'Status Kepegawaian' },
+            { key: 'nuptk', label: 'NUPTK' },
+            { key: 'nip', label: 'NIP' },
+            { key: 'nomor_sk_cpns', label: 'Nomor SK CPNS' },
+            { key: 'tmt_cpns', label: 'TMT CPNS' },
+            { key: 'nomor_sk_pns', label: 'Nomor SK PNS' },
+            { key: 'tmt_pns', label: 'TMT PNS' },
+            { key: 'nomor_sk_pengangkatan', label: 'Nomor SK Pengangkatan' },
+            { key: 'tmt_pengangkatan', label: 'TMT Pengangkatan' },
+            { key: 'lembaga_pengangkat', label: 'Lembaga Pengangkat' },
+            { key: 'pangkat', label: 'Pangkat' },
+            { key: 'golongan', label: 'Golongan' },
+            { key: 'sumber_gaji', label: 'Sumber Gaji' },
+            { key: 'tugas_tambahan', label: 'Tugas Tambahan' },
+            { key: 'nama_ibu_kandung', label: 'Nama Ibu Kandung' },
+            { key: 'status_perkawinan', label: 'Status Perkawinan' },
+            { key: 'nama_suami_istri', label: 'Nama Suami/Istri' },
+            { key: 'nip_suami_istri', label: 'NIP Suami/Istri' },
+            { key: 'pekerjaan_suami_istri', label: 'Pekerjaan Suami/Istri' },
+            { key: 'sudah_lisensi_kepala_sekolah', label: 'Sudah Lisensi Kepala Sekolah' },
+            { key: 'pernah_diklat_kepegawaian', label: 'Pernah Diklat Kepegawaian' },
+            { key: 'keahlian_braille', label: 'Keahlian Braille' },
+            { key: 'keahlian_bahasa_isyarat', label: 'Keahlian Bahasa Isyarat' },
+            { key: 'npwp', label: 'NPWP' },
+            { key: 'nama_wajib_pajak', label: 'Nama Wajib Pajak' },
+            { key: 'kewarganegaraan', label: 'Kewarganegaraan' },
+            { key: 'nik', label: 'NIK' },
+            { key: 'nomor_kk', label: 'Nomor KK' },
+            { key: 'nomor_karpeg', label: 'Nomor Karpeg' },
+            { key: 'nomor_karsu', label: 'Nomor Karsu' },
+            { key: 'nomor_nuks', label: 'Nomor NUKS' },
+            { key: 'tmt_di_sekolah_ini', label: 'TMT di Sekolah Ini' }
+        ];
+
+        const SISWA_FIELDS = [
+            { key: 'nama', label: 'Nama' },
+            { key: 'nipd', label: 'NIPD' },
+            { key: 'jenis_kelamin', label: 'Jenis Kelamin' },
+            { key: 'nisn', label: 'NISN' },
+            { key: 'tempat_lahir', label: 'Tempat Lahir' },
+            { key: 'tanggal_lahir', label: 'Tanggal Lahir' },
+            { key: 'nik', label: 'NIK' },
+            { key: 'no_kk', label: 'No KK' },
+            { key: 'agama', label: 'Agama' },
+            { key: 'alamat', label: 'Alamat' },
+            { key: 'rt', label: 'RT' },
+            { key: 'rw', label: 'RW' },
+            { key: 'kelurahan', label: 'Kelurahan' },
+            { key: 'kecamatan', label: 'Kecamatan' },
+            { key: 'kode_pos', label: 'Kode Pos' },
+            { key: 'jenis_tinggal', label: 'Jenis Tinggal' },
+            { key: 'alat_transportasi', label: 'Alat Transportasi' },
+            { key: 'telepon', label: 'Telepon' },
+            { key: 'hp', label: 'HP' },
+            { key: 'email', label: 'Email' },
+            { key: 'penerima_kjp', label: 'Penerima KJP' },
+            { key: 'penerima_pip', label: 'Penerima PIP' },
+            { key: 'nomor_kip', label: 'Nomor KIP' },
+            { key: 'nama_ayah', label: 'Nama Ayah' },
+            { key: 'tahun_lahir_ayah', label: 'Tahun Lahir Ayah' },
+            { key: 'nik_ayah', label: 'NIK Ayah' },
+            { key: 'jenjang_pendidikan_ayah', label: 'Jenjang Pendidikan Ayah' },
+            { key: 'pekerjaan_ayah', label: 'Pekerjaan Ayah' },
+            { key: 'penghasilan_ayah', label: 'Penghasilan Ayah' },
+            { key: 'nama_ibu', label: 'Nama Ibu' },
+            { key: 'tahun_lahir_ibu', label: 'Tahun Lahir Ibu' },
+            { key: 'nik_ibu', label: 'NIK Ibu' },
+            { key: 'jenjang_pendidikan_ibu', label: 'Jenjang Pendidikan Ibu' },
+            { key: 'pekerjaan_ibu', label: 'Pekerjaan Ibu' },
+            { key: 'penghasilan_ibu', label: 'Penghasilan Ibu' },
+            { key: 'nama_wali', label: 'Nama Wali' },
+            { key: 'tahun_lahir_wali', label: 'Tahun Lahir Wali' },
+            { key: 'nik_wali', label: 'NIK Wali' },
+            { key: 'jenjang_pendidikan_wali', label: 'Jenjang Pendidikan Wali' },
+            { key: 'pekerjaan_wali', label: 'Pekerjaan Wali' },
+            { key: 'penghasilan_wali', label: 'Penghasilan Wali' },
+            { key: 'rombel_saat_ini', label: 'Rombel Saat Ini' },
+            { key: 'nomor_akta_kelahiran', label: 'Nomor Akta Kelahiran' },
+            { key: 'anak_keberapa', label: 'Anak Keberapa' },
+            { key: 'jumlah_saudara_kandung', label: 'Jumlah Saudara Kandung' },
+            { key: 'berat_badan', label: 'Berat Badan' },
+            { key: 'tinggi_badan', label: 'Tinggi Badan' },
+            { key: 'lingkar_kepala', label: 'Lingkar Kepala' },
+            { key: 'jarak_rumah_ke_sekolah', label: 'Jarak Rumah ke Sekolah' }
+        ];
+
+        /* INDEXEDDB ENGINE */
+        const DB_NAME = 'SIMS_SekolahDB';
+        const DB_VERSION = 5;
+        let db = null;
+
+        function initIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    ALL_STORES.forEach(store => {
+                        if (!database.objectStoreNames.contains(store)) {
+                            if (store === 'users') database.createObjectStore('users', { keyPath: 'username' });
+                            else if (store === 'school') database.createObjectStore('school', { keyPath: 'id' });
+                            else database.createObjectStore(store, { keyPath: 'id', autoIncrement: true });
+                        }
+                    });
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    seedDefaultAdmin().then(resolve);
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        async function seedDefaultAdmin() {
+            const users = await dbGetAll('users');
+            if (users.length === 0) {
+                await dbPut('users', { 
+                    username: 'admin', 
+                    password: 'admin123', 
+                    name: 'Administrator Utama', 
+                    role: 'admin',
+                    permissions: [...ALL_MENUS]
+                });
+            }
+        }
+
+        function dbGetAll(storeName) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, 'readonly');
+                const store = tx.objectStore(storeName);
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function dbPut(storeName, data) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                const req = store.put(data);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function dbDelete(storeName, key) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                const req = store.delete(key);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function dbBulkInsert(storeName, items) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                items.forEach(item => store.put(item));
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+            });
+        }
+
+        function dbClearStore(storeName) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(storeName, 'readwrite');
+                const store = tx.objectStore(storeName);
+                const req = store.clear();
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        /* AUTHENTICATION & PERMISSIONS NAV */
+        let currentUser = null;
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
+
+            const user = await new Promise((resolve) => {
+                const tx = db.transaction('users', 'readonly');
+                const req = tx.objectStore('users').get(u);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => resolve(null);
+            });
+
+            if (user && user.password === p) {
+                currentUser = user;
+                sessionStorage.setItem('sims_user', JSON.stringify(user));
+                document.getElementById('loginOverlay').style.display = 'none';
+                applyUserRolePermissions();
+                renderAllData();
+            } else {
+                alert('Username atau password salah!');
+            }
+        });
+
+        function logout() {
+            sessionStorage.removeItem('sims_user');
+            currentUser = null;
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
+
+        function checkSession() {
+            const saved = sessionStorage.getItem('sims_user');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                document.getElementById('loginOverlay').style.display = 'none';
+                applyUserRolePermissions();
+                renderAllData();
+            }
+        }
+
+        function toggleSubmenu(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = el.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+
+        function applyUserRolePermissions() {
+            if (!currentUser) return;
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userRole').textContent = currentUser.role.toUpperCase();
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+
+            const permissions = currentUser.permissions || ALL_MENUS;
+            document.querySelectorAll('.sidebar-menu .nav-item[data-menu]').forEach(el => {
+                const menuKey = el.getAttribute('data-menu');
+                if (menuKey) {
+                    el.style.display = permissions.includes(menuKey) ? 'flex' : 'none';
+                }
+            });
+
+            const hasAnySarpras = ALL_MENUS.filter(m => m.startsWith('sarpras-')).some(m => permissions.includes(m));
+            const sarprasParent = document.querySelector('.sarpras-parent-menu');
+            if (sarprasParent) sarprasParent.style.display = hasAnySarpras ? 'flex' : 'none';
+
+            const hasAnyPeminjaman = ALL_MENUS.filter(m => m.startsWith('peminjaman-')).some(m => permissions.includes(m));
+            const peminjamanParent = document.querySelector('.peminjaman-parent-menu');
+            if (peminjamanParent) peminjamanParent.style.display = hasAnyPeminjaman ? 'flex' : 'none';
+
+            const hasAnyLaporan = ALL_MENUS.filter(m => m.startsWith('laporan-')).some(m => permissions.includes(m));
+            const laporanParent = document.querySelector('.laporan-parent-menu');
+            if (laporanParent) laporanParent.style.display = hasAnyLaporan ? 'flex' : 'none';
+        }
+
+        function navigateTo(sectionId) {
+            if (currentUser && currentUser.permissions && !currentUser.permissions.includes(sectionId)) {
+                alert('Anda tidak memiliki hak akses untuk membuka halaman ini!');
+                return;
+            }
+
+            document.querySelectorAll('.section-page').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            const targetPage = document.getElementById(`page-${sectionId}`);
+            if (targetPage) targetPage.classList.add('active');
+
+            const activeNav = document.querySelector(`.nav-item[data-menu="${sectionId}"]`);
+            if (activeNav) activeNav.classList.add('active');
+
+            if (sectionId.startsWith('sarpras-')) document.getElementById('sarprasSubmenu').style.display = 'block';
+            if (sectionId.startsWith('peminjaman-')) document.getElementById('peminjamanSubmenu').style.display = 'block';
+            if (sectionId.startsWith('laporan-')) document.getElementById('laporanSubmenu').style.display = 'block';
+
+            renderAllData();
+        }
+
+        /* EXCEL HELPERS & DASHBOARD STATS */
+        function downloadExcelTemplate(headers, filename) {
+            const ws = XLSX.utils.aoa_to_sheet([headers]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Template');
+            XLSX.writeFile(wb, filename);
+        }
+
+        function parseExcelFile(file, callback) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+                callback(json);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function exportReportToExcel(tableId, filename) {
+            const table = document.getElementById(tableId);
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Laporan" });
+            XLSX.writeFile(wb, `${filename}.xlsx`);
+        }
+
+        async function updateDashboardStats() {
+            const guru = await dbGetAll('guru');
+            const siswa = await dbGetAll('siswa');
+            const rombel = await dbGetAll('rombel');
+            const tanah = await dbGetAll('sarpras_tanah');
+            const bangunan = await dbGetAll('sarpras_bangunan');
+            const ruang = await dbGetAll('sarpras_ruang');
+            const peralatan = await dbGetAll('sarpras_peralatan');
+            const buku = await dbGetAll('sarpras_buku');
+            const presensi = await dbGetAll('presensi');
+
+            document.getElementById('statGuru').textContent = guru.length;
+            document.getElementById('statSiswa').textContent = siswa.length;
+            document.getElementById('statRombel').textContent = rombel.length;
+            
+            const totalSarprasItems = tanah.length + bangunan.length + ruang.length + peralatan.length + buku.length;
+            document.getElementById('statSarpras').textContent = totalSarprasItems;
+
+            let hadir = 0, izin = 0, sakit = 0, alpa = 0;
+            presensi.forEach(p => {
+                if (p.status === 'Hadir') hadir++;
+                else if (p.status === 'Izin') izin++;
+                else if (p.status === 'Sakit') sakit++;
+                else if (p.status === 'Alpa') alpa++;
+            });
+
+            document.getElementById('dashHadir').textContent = hadir;
+            document.getElementById('dashIzin').textContent = izin;
+            document.getElementById('dashSakit').textContent = sakit;
+            document.getElementById('dashAlpa').textContent = alpa;
+        }
+
+        /* BACKUP & RESTORE DATA */
+        async function backupDatabase() {
+            const dataBackup = {};
+            for (const store of ALL_STORES) {
+                dataBackup[store] = await dbGetAll(store);
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataBackup, null, 2));
+            const downloadAnchor = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `SIMS_Backup_${dateStr}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        async function restoreDatabase(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    if (confirm("Restore akan mengganti seluruh data yang ada. Lanjutkan?")) {
+                        for (const store of ALL_STORES) {
+                            if (backupData[store]) {
+                                await dbClearStore(store);
+                                await dbBulkInsert(store, backupData[store]);
+                            }
+                        }
+                        alert("Restore database berhasil!");
+                        renderAllData();
+                    }
+                } catch (err) {
+                    alert("Gagal memulihkan database. Berkas JSON tidak valid.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* DYNAMIC FORM GENERATOR */
+        function buildDynamicForms() {
+            const gContainer = document.getElementById('guruFormFieldsContainer');
+            const gHeaderRow = document.getElementById('guruTableHeaderRow');
+            gContainer.innerHTML = '';
+            gHeaderRow.innerHTML = '<th>Aksi</th>';
+            
+            GURU_FIELDS.forEach(f => {
+                const isDateField = f.key.includes('tanggal') || f.key.includes('tmt');
+                gContainer.innerHTML += `
+                    <div class="form-group">
+                        <label>${f.label}</label>
+                        <input type="${isDateField ? 'date' : 'text'}" id="g_${f.key}" class="form-control">
+                    </div>
+                `;
+                gHeaderRow.innerHTML += `<th>${f.label}</th>`;
+            });
+
+            const sContainer = document.getElementById('siswaFormFieldsContainer');
+            const sHeaderRow = document.getElementById('siswaTableHeaderRow');
+            sContainer.innerHTML = '';
+            sHeaderRow.innerHTML = '<th>Aksi</th>';
+
+            SISWA_FIELDS.forEach(f => {
+                if (f.key === 'rombel_saat_ini') {
+                    sContainer.innerHTML += `
+                        <div class="form-group">
+                            <label>${f.label}</label>
+                            <select id="s_${f.key}" class="form-control">
+                                <option value="">-- Pilih Rombel --</option>
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    sContainer.innerHTML += `
+                        <div class="form-group">
+                            <label>${f.label}</label>
+                            <input type="${f.key.includes('tanggal') ? 'date' : 'text'}" id="s_${f.key}" class="form-control">
+                        </div>
+                    `;
+                }
+                sHeaderRow.innerHTML += `<th>${f.label}</th>`;
+            });
+        }
+
+        /* POPULATE DROPDOWNS */
+        async function populatePeminjamDropdowns() {
+            const guruList = await dbGetAll('guru');
+            const siswaList = await dbGetAll('siswa');
+
+            let optionsHtml = '<option value="">-- Pilih Peminjam (Guru/Siswa) --</option>';
+
+            if (guruList.length > 0) {
+                optionsHtml += '<optgroup label="Guru & Karyawan">';
+                guruList.forEach(g => {
+                    if (g.nama) {
+                        const info = g.nip ? ` (NIP: ${g.nip})` : '';
+                        optionsHtml += `<option value="${g.nama} (Guru)">${g.nama}${info} - Guru/Karyawan</option>`;
+                    }
+                });
+                optionsHtml += '</optgroup>';
+            }
+
+            if (siswaList.length > 0) {
+                optionsHtml += '<optgroup label="Siswa / Peserta Didik">';
+                siswaList.forEach(s => {
+                    if (s.nama) {
+                        const rombelInfo = s.rombel_saat_ini ? ` - Kelas ${s.rombel_saat_ini}` : '';
+                        optionsHtml += `<option value="${s.nama} (${s.rombel_saat_ini || 'Siswa'})">${s.nama}${rombelInfo}</option>`;
+                    }
+                });
+                optionsHtml += '</optgroup>';
+            }
+
+            const selectPinjamBuku = document.getElementById('pinjamBukuNama');
+            const selectPinjamAlat = document.getElementById('pinjamAlatNama');
+
+            if (selectPinjamBuku) selectPinjamBuku.innerHTML = optionsHtml;
+            if (selectPinjamAlat) selectPinjamAlat.innerHTML = optionsHtml;
+        }
+
+        async function populateBukuDropdowns() {
+            const bukuList = await dbGetAll('sarpras_buku');
+            let optionsHtml = '<option value="">-- Pilih Buku --</option>';
+            bukuList.forEach(b => {
+                if (b.judul) {
+                    optionsHtml += `<option value="${b.judul}">${b.judul} (${b.kode || 'ISBN-'}) - Jml: ${b.jumlah || 1} eks</option>`;
+                }
+            });
+            const selectPinjamBukuJudul = document.getElementById('pinjamBukuJudul');
+            if (selectPinjamBukuJudul) selectPinjamBukuJudul.innerHTML = optionsHtml;
+        }
+
+        async function populatePeralatanDropdowns() {
+            const alatList = await dbGetAll('sarpras_peralatan');
+            let optionsHtml = '<option value="">-- Pilih Peralatan --</option>';
+            alatList.forEach(a => {
+                if (a.nama) {
+                    const merkInfo = a.merk ? ` (${a.merk})` : '';
+                    optionsHtml += `<option value="${a.nama}">${a.nama}${merkInfo} - Jml: ${a.jumlah || 1} unit</option>`;
+                }
+            });
+            const selectPinjamAlatNama = document.getElementById('pinjamAlatNamaAlat');
+            if (selectPinjamAlatNama) selectPinjamAlatNama.innerHTML = optionsHtml;
+        }
+
+        function filterOptions(inputEl, selectId) {
+            const filter = inputEl.value.toLowerCase().trim();
+            const selectEl = document.getElementById(selectId);
+            const options = selectEl.getElementsByTagName('option');
+
+            for (let i = 0; i < options.length; i++) {
+                const opt = options[i];
+                if (opt.value === "") continue;
+                const txt = opt.textContent.toLowerCase();
+                opt.style.display = txt.includes(filter) ? "" : "none";
+            }
+        }
+
+        /* RENDER & DATA MANAGERS */
+        async function renderAllData() {
+            await renderSchoolProfile();
+            await renderUsers();
+            await renderHakAkses();
+            await renderGuru();
+            await renderSiswa();
+            await renderRombel();
+            await renderSarprasTanah();
+            await renderSarprasBangunan();
+            await renderSarprasRuang();
+            await renderSarprasPeralatan();
+            await renderSarprasBuku();
+            await populatePeminjamDropdowns();
+            await populateBukuDropdowns();
+            await populatePeralatanDropdowns();
+            await renderPeminjamanBuku();
+            await renderPeminjamanPeralatan();
+            await renderPresensi();
+            await renderLaporanAll();
+            await updateDashboardStats();
+        }
+
+        async function renderSchoolProfile() {
+            const schools = await dbGetAll('school');
+            if (schools.length > 0) {
+                const s = schools[0];
+                document.getElementById('secNama').value = s.nama || '';
+                document.getElementById('secNpsn').value = s.npsn || '';
+                document.getElementById('secKepala').value = s.kepalaSekolah || '';
+                document.getElementById('secAlamat').value = s.alamat || '';
+                document.getElementById('secTelepon').value = s.telepon || '';
+                document.getElementById('secEmail').value = s.email || '';
+
+                document.getElementById('sidebarSchoolName').textContent = s.nama || 'SIM Sekolah';
+                document.getElementById('sidebarNPSN').textContent = `NPSN: ${s.npsn || '-'}`;
+                document.getElementById('topSchoolTitle').textContent = s.nama || 'Sistem Informasi Management Sekolah';
+                
+                document.getElementById('dashNamaSekolah').textContent = s.nama || 'Belum Diatur';
+                document.getElementById('dashNPSN').textContent = `NPSN: ${s.npsn || '-'}`;
+                document.getElementById('dashAlamat').textContent = `Alamat: ${s.alamat || '-'}`;
+                document.getElementById('dashKepala').textContent = `Kepala Sekolah: ${s.kepalaSekolah || '-'}`;
+
+                if (s.logoBase64) {
+                    document.getElementById('sidebarLogo').src = s.logoBase64;
+                    document.getElementById('dashLogo').src = s.logoBase64;
+                    document.getElementById('dashLogo').style.display = 'block';
+                    document.getElementById('logoPreviewCurrent').src = s.logoBase64;
+                    document.getElementById('logoPreviewCurrent').style.display = 'block';
+                }
+            }
+        }
+
+        document.getElementById('formSekolah').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const existing = (await dbGetAll('school'))[0] || {};
+            const updated = {
+                id: 1,
+                nama: document.getElementById('secNama').value,
+                npsn: document.getElementById('secNpsn').value,
+                kepalaSekolah: document.getElementById('secKepala').value,
+                alamat: document.getElementById('secAlamat').value,
+                telepon: document.getElementById('secTelepon').value,
+                email: document.getElementById('secEmail').value,
+                logoBase64: existing.logoBase64 || ''
+            };
+            await dbPut('school', updated);
+            alert('Profil sekolah berhasil disimpan!');
+            renderSchoolProfile();
+        });
+
+        async function saveLogoManual() {
+            const fileInput = document.getElementById('logoFileInput');
+            if (fileInput.files.length === 0) return alert('Silakan pilih berkas gambar logo!');
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const existing = (await dbGetAll('school'))[0] || { id: 1 };
+                existing.logoBase64 = e.target.result;
+                await dbPut('school', existing);
+                alert('Logo sekolah berhasil diperbarui!');
+                renderSchoolProfile();
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        /* MANAJEMEN USER & HAK AKSES */
+        async function renderUsers() {
+            const users = await dbGetAll('users');
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = '';
+            users.forEach(u => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${u.name}</strong></td>
+                        <td>${u.username}</td>
+                        <td><span class="badge ${u.role === 'admin' ? 'badge-danger' : 'badge-info'}">${u.role.toUpperCase()}</span></td>
+                        <td>
+                            ${u.username !== 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.username}')"><i class="fa-solid fa-trash"></i></button>` : '<span style="color:var(--text-muted); font-size:0.75rem;">Default</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('formUser').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const role = document.getElementById('usrRole').value;
+            const newUser = {
+                name: document.getElementById('usrNama').value,
+                username: document.getElementById('usrUsername').value.trim(),
+                password: document.getElementById('usrPassword').value.trim(),
+                role: role,
+                permissions: role === 'admin' ? [...ALL_MENUS] : ['dashboard', 'guru', 'siswa', 'rombel', 'sarpras-tanah', 'sarpras-bangunan', 'sarpras-ruang', 'sarpras-peralatan', 'sarpras-buku', 'peminjaman-buku', 'peminjaman-peralatan', 'presensi']
+            };
+            await dbPut('users', newUser);
+            alert('User baru berhasil ditambahkan!');
+            document.getElementById('formUser').reset();
+            renderUsers();
+            renderHakAkses();
+        });
+
+        async function deleteUser(username) {
+            if (confirm(`Hapus pengguna ${username}?`)) {
+                await dbDelete('users', username);
+                renderUsers();
+                renderHakAkses();
+            }
+        }
+
+        async function renderHakAkses() {
+            const users = await dbGetAll('users');
+            const tbody = document.getElementById('hakAksesTableBody');
+            tbody.innerHTML = '';
+
+            users.forEach(u => {
+                const userPerms = u.permissions || ALL_MENUS;
+                let checkboxes = ALL_MENUS.map(menu => `
+                    <td style="text-align: center;">
+                        <input type="checkbox" class="checkbox-custom perm-check-${u.username}" 
+                            data-menu="${menu}" ${userPerms.includes(menu) ? 'checked' : ''} 
+                            ${u.username === 'admin' ? 'disabled' : ''}>
+                    </td>
+                `).join('');
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${u.name}</strong><br><small style="color:var(--text-muted);">${u.username}</small></td>
+                        <td><span class="badge ${u.role === 'admin' ? 'badge-danger' : 'badge-info'}">${u.role.toUpperCase()}</span></td>
+                        ${checkboxes}
+                        <td style="text-align: center;">
+                            ${u.username !== 'admin' ? `<button class="btn btn-primary btn-sm" onclick="saveUserPermissions('${u.username}')"><i class="fa-solid fa-floppy-disk"></i> Simpan</button>` : '<span style="color:var(--text-muted); font-size:0.75rem;">Full Control</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function saveUserPermissions(username) {
+            const tx = db.transaction('users', 'readwrite');
+            const store = tx.objectStore('users');
+            const req = store.get(username);
+
+            req.onsuccess = async () => {
+                const user = req.result;
+                if (!user) return;
+
+                const selectedPerms = [];
+                document.querySelectorAll(`.perm-check-${username}`).forEach(cb => {
+                    if (cb.checked) selectedPerms.push(cb.getAttribute('data-menu'));
+                });
+
+                user.permissions = selectedPerms;
+                await dbPut('users', user);
+
+                if (currentUser && currentUser.username === username) {
+                    currentUser.permissions = selectedPerms;
+                    sessionStorage.setItem('sims_user', JSON.stringify(currentUser));
+                    applyUserRolePermissions();
+                }
+
+                alert(`Hak akses untuk ${user.name} berhasil diperbarui!`);
+            };
+        }
+
+        /* DATA GURU MANAGEMENT */
+        async function renderGuru() {
+            const data = await dbGetAll('guru');
+            const tbody = document.getElementById('guruTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(g => {
+                let rowHtml = `<tr>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteGuru(${g.id})"><i class="fa-solid fa-trash"></i></button>
+                    </td>`;
+                
+                GURU_FIELDS.forEach(f => {
+                    const val = g[f.key] !== undefined && g[f.key] !== '' ? g[f.key] : '-';
+                    rowHtml += f.key === 'nama' ? `<td><strong>${val}</strong></td>` : `<td>${val}</td>`;
+                });
+
+                rowHtml += `</tr>`;
+                tbody.innerHTML += rowHtml;
+            });
+            await populatePeminjamDropdowns();
+        }
+
+        document.getElementById('formGuru').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {};
+            GURU_FIELDS.forEach(f => {
+                const el = document.getElementById(`g_${f.key}`);
+                if (el) item[f.key] = el.value;
+            });
+
+            await dbPut('guru', item);
+            alert('Data Guru berhasil disimpan!');
+            document.getElementById('formGuru').reset();
+            renderGuru();
+            updateDashboardStats();
+        });
+
+        async function deleteGuru(id) {
+            if (confirm('Hapus data guru/karyawan ini?')) {
+                await dbDelete('guru', id);
+                renderGuru();
+                updateDashboardStats();
+            }
+        }
+
+        function downloadGuruTemplate() {
+            downloadExcelTemplate(GURU_FIELDS.map(f => f.label), 'Template_Guru_46_Atribut.xlsx');
+        }
+
+        function exportGuruToExcel() {
+            dbGetAll('guru').then(data => {
+                if (data.length === 0) return alert('Tidak ada data guru untuk diekspor.');
+                const formattedData = data.map(g => {
+                    const obj = {};
+                    GURU_FIELDS.forEach(f => { obj[f.label] = g[f.key] || ''; });
+                    return obj;
+                });
+                const ws = XLSX.utils.json_to_sheet(formattedData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Data Guru');
+                XLSX.writeFile(wb, 'Data_Guru_Lengkap.xlsx');
+            });
+        }
+
+        document.getElementById('excelGuruInput').addEventListener('change', function(e) {
+            if (!e.target.files[0]) return;
+            parseExcelFile(e.target.files[0], async (rows) => {
+                const items = rows.map(r => {
+                    const item = {};
+                    GURU_FIELDS.forEach(f => { item[f.key] = String(r[f.label] || r[f.key] || ''); });
+                    return item;
+                });
+                await dbBulkInsert('guru', items);
+                alert('Impor data Guru berhasil!');
+                renderGuru();
+                updateDashboardStats();
+            });
+        });
+
+        /* DATA SISWA MANAGEMENT */
+        async function renderSiswa() {
+            const data = await dbGetAll('siswa');
+            const tbody = document.getElementById('siswaTableBody');
+            tbody.innerHTML = '';
+
+            const rombelList = await dbGetAll('rombel');
+            const sRombelSelect = document.getElementById('s_rombel_saat_ini');
+            if(sRombelSelect) {
+                sRombelSelect.innerHTML = '<option value="">-- Pilih Rombel --</option>' + 
+                    rombelList.map(r => `<option value="${r.nama}">${r.nama}</option>`).join('');
+            }
+
+            data.forEach(s => {
+                let rowHtml = `<tr><td><button class="btn btn-danger btn-sm" onclick="deleteSiswa(${s.id})"><i class="fa-solid fa-trash"></i></button></td>`;
+                SISWA_FIELDS.forEach(f => {
+                    const val = s[f.key] !== undefined && s[f.key] !== '' ? s[f.key] : '-';
+                    rowHtml += f.key === 'nama' ? `<td><strong>${val}</strong></td>` : `<td>${val}</td>`;
+                });
+                rowHtml += `</tr>`;
+                tbody.innerHTML += rowHtml;
+            });
+            await populatePeminjamDropdowns();
+        }
+
+        document.getElementById('formSiswa').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {};
+            SISWA_FIELDS.forEach(f => {
+                const el = document.getElementById(`s_${f.key}`);
+                if (el) item[f.key] = el.value;
+            });
+            await dbPut('siswa', item);
+            alert('Data Siswa berhasil disimpan!');
+            document.getElementById('formSiswa').reset();
+            renderSiswa();
+            updateDashboardStats();
+        });
+
+        async function deleteSiswa(id) {
+            if (confirm('Hapus data siswa ini?')) {
+                await dbDelete('siswa', id);
+                renderSiswa();
+                updateDashboardStats();
+            }
+        }
+
+        function downloadSiswaTemplate() {
+            downloadExcelTemplate(SISWA_FIELDS.map(f => f.label), 'Template_Siswa_49_Atribut.xlsx');
+        }
+
+        function exportSiswaToExcel() {
+            dbGetAll('siswa').then(data => {
+                if (data.length === 0) return alert('Tidak ada data siswa untuk diekspor.');
+                const formattedData = data.map(s => {
+                    const obj = {};
+                    SISWA_FIELDS.forEach(f => { obj[f.label] = s[f.key] || ''; });
+                    return obj;
+                });
+                const ws = XLSX.utils.json_to_sheet(formattedData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Data Siswa');
+                XLSX.writeFile(wb, 'Data_Siswa_Lengkap.xlsx');
+            });
+        }
+
+        document.getElementById('excelSiswaInput').addEventListener('change', function(e) {
+            if (!e.target.files[0]) return;
+            parseExcelFile(e.target.files[0], async (rows) => {
+                const items = rows.map(r => {
+                    const item = {};
+                    SISWA_FIELDS.forEach(f => { item[f.key] = String(r[f.label] || r[f.key] || ''); });
+                    return item;
+                });
+                await dbBulkInsert('siswa', items);
+                alert('Impor data Siswa berhasil!');
+                renderSiswa();
+                updateDashboardStats();
+            });
+        });
+
+        /* ROMBEL MANAGEMENT */
+        async function renderRombel() {
+            const data = await dbGetAll('rombel');
+            const tbody = document.getElementById('rombelTableBody');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                tbody.innerHTML += `<tr>
+                    <td><strong>${r.nama}</strong></td>
+                    <td>${r.tingkat}</td>
+                    <td>${r.wali || '-'}</td>
+                    <td>${r.thnAjaran || '-'}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteRombel(${r.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('formRombel').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                nama: document.getElementById('rombelNama').value,
+                tingkat: document.getElementById('rombelTingkat').value,
+                wali: document.getElementById('rombelWali').value,
+                thnAjaran: document.getElementById('rombelThnAjaran').value
+            };
+            await dbPut('rombel', item);
+            alert('Data Rombel berhasil disimpan!');
+            document.getElementById('formRombel').reset();
+            renderRombel();
+            renderSiswa();
+            updateDashboardStats();
+        });
+
+        async function deleteRombel(id) {
+            if (confirm('Hapus data rombel ini?')) {
+                await dbDelete('rombel', id);
+                renderRombel();
+                renderSiswa();
+                updateDashboardStats();
+            }
+        }
+
+        /* SARPRAS - TANAH */
+        async function renderSarprasTanah() {
+            const data = await dbGetAll('sarpras_tanah');
+            const tbody = document.getElementById('tanahTableBody');
+            tbody.innerHTML = '';
+            data.forEach(t => {
+                tbody.innerHTML += `<tr>
+                    <td>${t.kode}</td>
+                    <td><strong>${t.nama}</strong></td>
+                    <td>${t.luas}</td>
+                    <td>${t.status}</td>
+                    <td>${t.sertifikat || '-'}</td>
+                    <td>${t.alamat || '-'}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSarprasTanah(${t.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('formSarprasTanah').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                nama: document.getElementById('tanahNama').value,
+                kode: document.getElementById('tanahKode').value,
+                luas: document.getElementById('tanahLuas').value,
+                status: document.getElementById('tanahStatus').value,
+                sertifikat: document.getElementById('tanahSertifikat').value,
+                alamat: document.getElementById('tanahAlamat').value
+            };
+            await dbPut('sarpras_tanah', item);
+            alert('Data Tanah disimpan!');
+            document.getElementById('formSarprasTanah').reset();
+            renderSarprasTanah();
+            updateDashboardStats();
+        });
+
+        async function deleteSarprasTanah(id) {
+            if (confirm('Hapus data tanah ini?')) {
+                await dbDelete('sarpras_tanah', id);
+                renderSarprasTanah();
+                updateDashboardStats();
+            }
+        }
+
+        /* SARPRAS - BANGUNAN */
+        async function renderSarprasBangunan() {
+            const data = await dbGetAll('sarpras_bangunan');
+            const tbody = document.getElementById('bangunanTableBody');
+            tbody.innerHTML = '';
+            data.forEach(b => {
+                tbody.innerHTML += `<tr>
+                    <td>${b.kode}</td>
+                    <td><strong>${b.nama}</strong></td>
+                    <td>${b.luas}</td>
+                    <td>${b.lantai}</td>
+                    <td>${b.tahun || '-'}</td>
+                    <td><span class="badge ${b.kondisi === 'Baik' ? 'badge-success' : 'badge-warning'}">${b.kondisi}</span></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSarprasBangunan(${b.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('formSarprasBangunan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                kode: document.getElementById('bangunanKode').value,
+                nama: document.getElementById('bangunanNama').value,
+                luas: document.getElementById('bangunanLuas').value,
+                lantai: document.getElementById('bangunanLantai').value,
+                tahun: document.getElementById('bangunanTahun').value,
+                kondisi: document.getElementById('bangunanKondisi').value
+            };
+            await dbPut('sarpras_bangunan', item);
+            alert('Data Bangunan disimpan!');
+            document.getElementById('formSarprasBangunan').reset();
+            renderSarprasBangunan();
+            updateDashboardStats();
+        });
+
+        async function deleteSarprasBangunan(id) {
+            if (confirm('Hapus data bangunan ini?')) {
+                await dbDelete('sarpras_bangunan', id);
+                renderSarprasBangunan();
+                updateDashboardStats();
+            }
+        }
+
+        /* SARPRAS - RUANG */
+        async function renderSarprasRuang() {
+            const data = await dbGetAll('sarpras_ruang');
+            const tbody = document.getElementById('ruangTableBody');
+            tbody.innerHTML = '';
+            data.forEach(r => {
+                tbody.innerHTML += `<tr>
+                    <td>${r.kode}</td>
+                    <td><strong>${r.nama}</strong></td>
+                    <td>${r.jenis}</td>
+                    <td>${r.ukuran || '-'}</td>
+                    <td>${r.kapasitas || '-'}</td>
+                    <td><span class="badge ${r.kondisi === 'Baik' ? 'badge-success' : 'badge-warning'}">${r.kondisi}</span></td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSarprasRuang(${r.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('formSarprasRuang').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                kode: document.getElementById('ruangKode').value,
+                nama: document.getElementById('ruangNama').value,
+                jenis: document.getElementById('ruangJenis').value,
+                ukuran: document.getElementById('ruangUkuran').value,
+                kapasitas: document.getElementById('ruangKapasitas').value,
+                kondisi: document.getElementById('ruangKondisi').value
+            };
+            await dbPut('sarpras_ruang', item);
+            alert('Data Ruang disimpan!');
+            document.getElementById('formSarprasRuang').reset();
+            renderSarprasRuang();
+            updateDashboardStats();
+        });
+
+        async function deleteSarprasRuang(id) {
+            if (confirm('Hapus data ruang ini?')) {
+                await dbDelete('sarpras_ruang', id);
+                renderSarprasRuang();
+                updateDashboardStats();
+            }
+        }
+
+        /* SARPRAS - PERALATAN */
+        async function renderSarprasPeralatan() {
+            const data = await dbGetAll('sarpras_peralatan');
+            const tbody = document.getElementById('peralatanTableBody');
+            tbody.innerHTML = '';
+            data.forEach(p => {
+                tbody.innerHTML += `<tr>
+                    <td>${p.kode}</td>
+                    <td><strong>${p.nama}</strong></td>
+                    <td>${p.merk || '-'}</td>
+                    <td>${p.jumlah}</td>
+                    <td><span class="badge ${p.kondisi === 'Baik' ? 'badge-success' : 'badge-warning'}">${p.kondisi}</span></td>
+                    <td>${p.lokasi || '-'}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSarprasPeralatan(${p.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+            await populatePeralatanDropdowns();
+        }
+
+        document.getElementById('formSarprasPeralatan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                kode: document.getElementById('alatKode').value,
+                nama: document.getElementById('alatNama').value,
+                merk: document.getElementById('alatMerk').value,
+                jumlah: document.getElementById('alatJumlah').value,
+                kondisi: document.getElementById('alatKondisi').value,
+                lokasi: document.getElementById('alatLokasi').value
+            };
+            await dbPut('sarpras_peralatan', item);
+            alert('Data Peralatan disimpan!');
+            document.getElementById('formSarprasPeralatan').reset();
+            renderSarprasPeralatan();
+            updateDashboardStats();
+        });
+
+        async function deleteSarprasPeralatan(id) {
+            if (confirm('Hapus data peralatan ini?')) {
+                await dbDelete('sarpras_peralatan', id);
+                renderSarprasPeralatan();
+                updateDashboardStats();
+            }
+        }
+
+        /* SARPRAS - BUKU */
+        async function renderSarprasBuku() {
+            const data = await dbGetAll('sarpras_buku');
+            const tbody = document.getElementById('bukuTableBody');
+            tbody.innerHTML = '';
+            data.forEach(b => {
+                tbody.innerHTML += `<tr>
+                    <td>${b.kode}</td>
+                    <td><strong>${b.judul}</strong></td>
+                    <td>${b.kategori || '-'}</td>
+                    <td>${b.pengarang || '-'}</td>
+                    <td>${b.penerbit || '-'}</td>
+                    <td>${b.jumlah}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deleteSarprasBuku(${b.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+            await populateBukuDropdowns();
+        }
+
+        document.getElementById('formSarprasBuku').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                kode: document.getElementById('bukuKode').value,
+                judul: document.getElementById('bukuJudul').value,
+                kategori: document.getElementById('bukuKategori').value,
+                pengarang: document.getElementById('bukuPengarang').value,
+                penerbit: document.getElementById('bukuPenerbit').value,
+                jumlah: document.getElementById('bukuJumlah').value
+            };
+            await dbPut('sarpras_buku', item);
+            alert('Data Buku disimpan!');
+            document.getElementById('formSarprasBuku').reset();
+            renderSarprasBuku();
+            updateDashboardStats();
+        });
+
+        async function deleteSarprasBuku(id) {
+            if (confirm('Hapus data buku ini?')) {
+                await dbDelete('sarpras_buku', id);
+                renderSarprasBuku();
+                updateDashboardStats();
+            }
+        }
+
+        /* PEMINJAMAN BUKU */
+        async function renderPeminjamanBuku() {
+            const data = await dbGetAll('peminjaman_buku');
+            const tbody = document.getElementById('peminjamanBukuTableBody');
+            tbody.innerHTML = '';
+            data.forEach(p => {
+                tbody.innerHTML += `<tr>
+                    <td>${p.tglPinjam}</td>
+                    <td><strong>${p.namaPeminjam}</strong></td>
+                    <td>${p.judulBuku}</td>
+                    <td>${p.jumlah}</td>
+                    <td>${p.kondisiPinjam}</td>
+                    <td>${p.lamaPinjam}</td>
+                    <td>${p.tglKembali || '-'}</td>
+                    <td><span class="badge ${p.kondisiKembali === 'Baik' ? 'badge-success' : (p.kondisiKembali === 'Belum Dikembalikan' ? 'badge-warning' : 'badge-danger')}">${p.kondisiKembali}</span></td>
+                    <td>${p.catatan || '-'}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deletePeminjamanBuku(${p.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('formPeminjamanBuku').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                tglPinjam: document.getElementById('pinjamBukuTanggalPinjam').value,
+                namaPeminjam: document.getElementById('pinjamBukuNama').value,
+                judulBuku: document.getElementById('pinjamBukuJudul').value,
+                jumlah: document.getElementById('pinjamBukuJumlah').value,
+                kondisiPinjam: document.getElementById('pinjamBukuKondisiPinjam').value,
+                lamaPinjam: document.getElementById('pinjamBukuLama').value,
+                tglKembali: document.getElementById('pinjamBukuTanggalKembali').value,
+                kondisiKembali: document.getElementById('pinjamBukuKondisiKembali').value,
+                catatan: document.getElementById('pinjamBukuCatatan').value
+            };
+            await dbPut('peminjaman_buku', item);
+            alert('Data Peminjaman Buku disimpan!');
+            document.getElementById('formPeminjamanBuku').reset();
+            renderPeminjamanBuku();
+        });
+
+        async function deletePeminjamanBuku(id) {
+            if (confirm('Hapus riwayat peminjaman ini?')) {
+                await dbDelete('peminjaman_buku', id);
+                renderPeminjamanBuku();
+            }
+        }
+
+        /* PEMINJAMAN PERALATAN */
+        async function renderPeminjamanPeralatan() {
+            const data = await dbGetAll('peminjaman_peralatan');
+            const tbody = document.getElementById('peminjamanPeralatanTableBody');
+            tbody.innerHTML = '';
+            data.forEach(p => {
+                tbody.innerHTML += `<tr>
+                    <td>${p.tglPinjam}</td>
+                    <td><strong>${p.namaPeminjam}</strong></td>
+                    <td>${p.namaAlat}</td>
+                    <td>${p.jumlah}</td>
+                    <td>${p.kondisiPinjam}</td>
+                    <td>${p.lamaPinjam}</td>
+                    <td>${p.tglKembali || '-'}</td>
+                    <td><span class="badge ${p.kondisiKembali === 'Baik' ? 'badge-success' : (p.kondisiKembali === 'Belum Dikembalikan' ? 'badge-warning' : 'badge-danger')}">${p.kondisiKembali}</span></td>
+                    <td>${p.catatan || '-'}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deletePeminjamanPeralatan(${p.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('formPeminjamanPeralatan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                tglPinjam: document.getElementById('pinjamAlatTanggalPinjam').value,
+                namaPeminjam: document.getElementById('pinjamAlatNama').value,
+                namaAlat: document.getElementById('pinjamAlatNamaAlat').value,
+                jumlah: document.getElementById('pinjamAlatJumlah').value,
+                kondisiPinjam: document.getElementById('pinjamAlatKondisiPinjam').value,
+                lamaPinjam: document.getElementById('pinjamAlatLama').value,
+                tglKembali: document.getElementById('pinjamAlatTanggalKembali').value,
+                kondisiKembali: document.getElementById('pinjamAlatKondisiKembali').value,
+                catatan: document.getElementById('pinjamAlatCatatan').value
+            };
+            await dbPut('peminjaman_peralatan', item);
+            alert('Data Peminjaman Peralatan disimpan!');
+            document.getElementById('formPeminjamanPeralatan').reset();
+            renderPeminjamanPeralatan();
+        });
+
+        async function deletePeminjamanPeralatan(id) {
+            if (confirm('Hapus riwayat peminjaman ini?')) {
+                await dbDelete('peminjaman_peralatan', id);
+                renderPeminjamanPeralatan();
+            }
+        }
+
+        /* PRESENSI */
+        async function renderPresensi() {
+            const data = await dbGetAll('presensi');
+            const tbody = document.getElementById('presensiTableBody');
+            tbody.innerHTML = '';
+            data.forEach(p => {
+                let badgeClass = 'badge-success';
+                if (p.status === 'Izin') badgeClass = 'badge-warning';
+                else if (p.status === 'Sakit') badgeClass = 'badge-info';
+                else if (p.status === 'Alpa') badgeClass = 'badge-danger';
+
+                tbody.innerHTML += `<tr>
+                    <td>${p.tanggal}</td>
+                    <td>${p.tipe}</td>
+                    <td><strong>${p.nama}</strong></td>
+                    <td><span class="badge ${badgeClass}">${p.status}</span></td>
+                    <td>${p.keterangan || '-'}</td>
+                    <td><button class="btn btn-danger btn-sm" onclick="deletePresensi(${p.id})"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            });
+        }
+
+        document.getElementById('formPresensi').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const item = {
+                tanggal: document.getElementById('presensiTanggal').value,
+                tipe: document.getElementById('presensiTipe').value,
+                nama: document.getElementById('presensiNama').value,
+                status: document.getElementById('presensiStatus').value,
+                keterangan: document.getElementById('presensiKet').value
+            };
+            await dbPut('presensi', item);
+            alert('Presensi berhasil dicatat!');
+            document.getElementById('formPresensi').reset();
+            renderPresensi();
+            updateDashboardStats();
+        });
+
+        async function deletePresensi(id) {
+            if (confirm('Hapus presensi ini?')) {
+                await dbDelete('presensi', id);
+                renderPresensi();
+                updateDashboardStats();
+            }
+        }
+
+        /* LAPORAN MANAGER */
+        async function renderLaporanAll() {
+            const guru = await dbGetAll('guru');
+            const siswa = await dbGetAll('siswa');
+            const presensi = await dbGetAll('presensi');
+            const buku = await dbGetAll('sarpras_buku');
+            const alat = await dbGetAll('sarpras_peralatan');
+            const pBuku = await dbGetAll('peminjaman_buku');
+            const pAlat = await dbGetAll('peminjaman_peralatan');
+
+            // 1. Lap Guru
+            document.getElementById('lapGuruBody').innerHTML = guru.map((g, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${g.nip || g.nuptk || '-'}</td>
+                    <td><strong>${g.nama || '-'}</strong></td>
+                    <td>${g.jenis_kelamin || '-'}</td>
+                    <td>${g.status_kepegawaian || '-'}</td>
+                    <td>${g.pangkat || '-'} / ${g.golongan || '-'}</td>
+                    <td>${g.nomor_hp || g.telepon || '-'}</td>
+                </tr>
+            `).join('');
+
+            // 2. Lap Siswa
+            document.getElementById('lapSiswaBody').innerHTML = siswa.map((s, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${s.nisn || s.nipd || '-'}</td>
+                    <td><strong>${s.nama || '-'}</strong></td>
+                    <td>${s.jenis_kelamin || '-'}</td>
+                    <td>${s.rombel_saat_ini || '-'}</td>
+                    <td>${s.agama || '-'}</td>
+                    <td>${s.nama_ayah || s.nama_ibu || s.nama_wali || '-'}</td>
+                </tr>
+            `).join('');
+
+            // 3. Lap Presensi Siswa
+            const pSiswa = presensi.filter(p => p.tipe === 'Siswa');
+            document.getElementById('lapPresensiSiswaBody').innerHTML = pSiswa.map((p, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${p.tanggal}</td>
+                    <td><strong>${p.nama}</strong></td>
+                    <td>${p.status}</td>
+                    <td>${p.keterangan || '-'}</td>
+                </tr>
+            `).join('');
+
+            // 4. Lap Presensi Guru
+            const pGuru = presensi.filter(p => p.tipe === 'Guru');
+            document.getElementById('lapPresensiGuruBody').innerHTML = pGuru.map((p, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${p.tanggal}</td>
+                    <td><strong>${p.nama}</strong></td>
+                    <td>${p.status}</td>
+                    <td>${p.keterangan || '-'}</td>
+                </tr>
+            `).join('');
+
+            // 5. Lap Buku
+            document.getElementById('lapBukuBody').innerHTML = buku.map((b, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${b.kode || '-'}</td>
+                    <td><strong>${b.judul || '-'}</strong></td>
+                    <td>${b.jumlah || 1}</td>
+                    <td>${b.penerbit || '-'}</td>
+                </tr>
+            `).join('');
+
+            // 6. Lap Peralatan
+            document.getElementById('lapPeralatanBody').innerHTML = alat.map((a, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${a.kode || '-'}</td>
+                    <td><strong>${a.nama || '-'}</strong></td>
+                    <td>${a.jumlah || 1}</td>
+                    <td>${a.kondisi || '-'}</td>
+                    <td>${a.lokasi || '-'}</td>
+                </tr>
+            `).join('');
+
+            // 7. Lap Pinjam Buku
+            document.getElementById('lapPinjamBukuBody').innerHTML = pBuku.map((pb, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${pb.tglPinjam}</td>
+                    <td><strong>${pb.namaPeminjam}</strong></td>
+                    <td>${pb.judulBuku}</td>
+                    <td>${pb.jumlah}</td>
+                    <td>${pb.tglKembali || '-'}</td>
+                    <td>${pb.kondisiKembali}</td>
+                </tr>
+            `).join('');
+
+            // 8. Lap Pinjam Alat
+            document.getElementById('lapPinjamAlatBody').innerHTML = pAlat.map((pa, i) => `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${pa.tglPinjam}</td>
+                    <td><strong>${pa.namaPeminjam}</strong></td>
+                    <td>${pa.namaAlat}</td>
+                    <td>${pa.jumlah}</td>
+                    <td>${pa.tglKembali || '-'}</td>
+                    <td>${pa.kondisiKembali}</td>
+                </tr>
+            `).join('');
+        }
+
+        /* INITIALIZATION */
+        window.addEventListener('DOMContentLoaded', async () => {
+            buildDynamicForms();
+            await initIndexedDB();
+            checkSession();
+        });
+    </script>
+</body>
+</html>
